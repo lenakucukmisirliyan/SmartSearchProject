@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSearch Bot</title>
+    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="icon" href="../static/Chatbot_Pic.webp" type="image/x-icon">
+</head>
+<body>
+    <div class="header">
+        <img src="../static/logo.png" alt="SmartSearch Logo">
+        <h1>SmartSearch</h1>
+        <button>&#x21bb;</button>
+    </div>
+    <div class="chat-container">
+        <div class="message-bubble">
+            <p>Merhaba! Lütfen eğitim önerisi almak istediğiniz yetkinlik veya konuyu giriniz...</p>
+        </div>
+        <div class="input-container">
+            <input type="text" id="searchInput" placeholder="Buraya yazınız...">
+            <button id="searchButton">&#x1f50d;</button>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputField = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const chatContainer = document.querySelector('.chat-container');
+
+        inputField.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                searchButton.click();
+            }
+        });
+
+        searchButton.addEventListener('click', function(e) {
+            e.preventDefault(); // Form submit önlemek için
+            const keyword = inputField.value.trim();
+
+            if (!keyword) {
+                alert('Lütfen geçerli bir anahtar kelime girin.');
+                return;
+            }
+
+            fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ keyword })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error(data.error);
+                } else {
+                    displayResults(data.results); // Sonuçları ekrana bas
+                    inputField.value = ''; // Sonuç gösterildikten sonra input'u sıfırla
+                }
+            })
+            .catch(error => console.error('Hata:', error));
+        });
+
+        function displayResults(results) {
+            chatContainer.innerHTML += '<div class="message-bubble">Sonuçlar:</div>';
+
+            if (!results || results.length === 0) {
+                chatContainer.innerHTML += '<div class="message-bubble">Sonuç bulunamadı.</div>';
+            } else {
+                results.forEach(training => {
+                    chatContainer.innerHTML += `<div class="message-bubble">${training["Eğitim Adı"]} (${training["Kategori"]})</div>`;
+                });
+            }
+
+            // Scroll'u son mesaja kaydır
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    });
+</script>
+
+</body>
+</html>
